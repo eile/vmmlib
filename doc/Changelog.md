@@ -2,6 +2,8 @@
 
 # git master
 
+* [50](https://github.com/Eyescale/vmmlib/pull/50):
+  Improved matrix and lowpass filter API
 * [49](https://github.com/Eyescale/vmmlib/pull/49):
   Add lookAt support for 4x4 matrices
 
