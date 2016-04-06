@@ -47,9 +47,8 @@ namespace vmml
 template< typename T > class FrustumCuller
 {
 public:
-    typedef vector< 2, T > vec2;
-    typedef vector< 3, T > vec3;
-    typedef vector< 4, T > vec4;
+    typedef Vector< 3, T > vec3;
+    typedef Vector< 4, T > vec4;
 
     /** Construct a new frustum culler */
     FrustumCuller() {}
@@ -159,9 +158,9 @@ FrustumCuller< T >::FrustumCuller( const vec3& a, const vec3& b,
 
 template < typename T >
 inline void
-FrustumCuller< T >::_normalizePlane( vector< 4, T >& plane ) const
+FrustumCuller< T >::_normalizePlane( Vector< 4, T >& plane ) const
 {
-    const vec3& v3 = plane.template get_sub_vector< 3 >();
+    const vec3& v3 = plane.template getSubVector< 3 >();
     const T len_i = 1.0 / v3.length();
     plane.x() *= len_i;
     plane.y() *= len_i;
@@ -171,7 +170,7 @@ FrustumCuller< T >::_normalizePlane( vector< 4, T >& plane ) const
 
 
 template < typename T > Visibility
-FrustumCuller< T >::test( const vector< 4, T >& sphere ) const
+FrustumCuller< T >::test( const Vector< 4, T >& sphere ) const
 {
     Visibility visibility = VISIBILITY_FULL;
 

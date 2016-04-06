@@ -74,7 +74,7 @@ public:
     Matrix< 4, 4, T > computeOrthoMatrix() const;
 
     /** Move the frustum near plane by the given offset "sideways" */
-    void jitter( const vector< 2, T >& jitter_ );
+    void jitter( const Vector< 2, T >& jitter_ );
 
     /**
      * Move the frustum near plane.
@@ -266,7 +266,7 @@ Matrix< 4, 4, T > Frustum< T >::computeOrthoMatrix() const
 }
 
 template < typename T >
-void Frustum< T >::jitter( const vector< 2, T >& jitter_ )
+void Frustum< T >::jitter( const Vector< 2, T >& jitter_ )
 {
     left()   = left() + jitter_.x();
     right()  = right() + jitter_.x();

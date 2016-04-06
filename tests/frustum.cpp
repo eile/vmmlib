@@ -35,9 +35,9 @@
 
 static void _testCull( const vmml::FrustumCullerf& fc )
 {
-    const vmml::vector< 4, float > sphereIn( 0.f, 0.f, -10.f, 1.f );
-    const vmml::vector< 4, float > sphereOut( 0.f, 0.f, 0.f, .5f );
-    const vmml::vector< 4, float > sphereBorder( 0.f, 0.f, -1.f, 1.f );
+    const vmml::Vector4f sphereIn( 0.f, 0.f, -10.f, 1.f );
+    const vmml::Vector4f sphereOut( 0.f, 0.f, 0.f, .5f );
+    const vmml::Vector4f sphereBorder( 0.f, 0.f, -1.f, 1.f );
 
     BOOST_CHECK_EQUAL( fc.test( sphereIn ), vmml::VISIBILITY_FULL );
     BOOST_CHECK_EQUAL( fc.test( sphereOut ), vmml::VISIBILITY_NONE );

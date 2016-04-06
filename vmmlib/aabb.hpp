@@ -54,28 +54,28 @@ public:
     AABB();
 
     /** Create a new bounding box from two corner points */
-    AABB( const vector< 3, T >& pMin, const vector< 3, T >& pMax );
+    AABB( const Vector< 3, T >& pMin, const Vector< 3, T >& pMax );
 
     /** Create a new bounding box from a bounding sphere */
-    AABB( const vector< 4, T >& sphere );
+    AABB( const Vector< 4, T >& sphere );
 
     /** @return true if the given point is within this bounding box. */
-    bool isIn( const vector< 3, T >& point ) const;
+    bool isIn( const Vector< 3, T >& point ) const;
 
     /** @return true if the given sphere is within this bounding box. */
-    bool isIn( const vector< 4, T >& sphere ) const;
+    bool isIn( const Vector< 4, T >& sphere ) const;
 
     /** @return the minimum corner point */
-    const vector< 3, T >& getMin() const;
+    const Vector< 3, T >& getMin() const;
 
     /** @return the maximum corner point */
-    const vector< 3, T >& getMax() const;
+    const Vector< 3, T >& getMax() const;
 
     /** Create the union of this and the given bounding box */
     void merge( const AABB< T >& aabb );
 
     /** Create the union of this and the given point */
-    void merge( const vector< 3, T >& point );
+    void merge( const Vector< 3, T >& point );
 
     /** Clear this bounding box */
     void reset();
@@ -90,24 +90,24 @@ public:
     bool operator!=( const AABB< T >& other ) const;
 
     /** @return the center of this bounding box */
-    vector< 3, T > getCenter() const;
+    Vector< 3, T > getCenter() const;
 
     /** @return the size of this bounding box */
-    vector< 3, T > getSize() const;
+    Vector< 3, T > getSize() const;
 
     /**
      * Compute the nearest and furthest point of this box relative to the given
      * plane.
      */
-    void computeNearFar( const vector< 4, T >& plane, vector< 3, T >& nearPoint,
-                         vector< 3, T >& farPoint ) const;
+    void computeNearFar( const Vector< 4, T >& plane, Vector< 3, T >& nearPoint,
+                         Vector< 3, T >& farPoint ) const;
 
     /** @return a bouding box of size one with the minimum point at zero. */
     static AABB< T > makeUnitBox();
 
 private:
-    vector< 3, T > _min;
-    vector< 3, T > _max;
+    Vector< 3, T > _min;
+    Vector< 3, T > _max;
     template< class U > friend void lunchbox::byteswap( U& );
 };
 
@@ -133,23 +133,23 @@ template<> inline AABB< double >::AABB()
 {}
 
 template< typename T >
-AABB< T >::AABB( const vector< 3, T >& pMin, const vector< 3, T >& pMax)
-    : _min( vector< 3, T >( std::min( pMin[0], pMax[0] ),
+AABB< T >::AABB( const Vector< 3, T >& pMin, const Vector< 3, T >& pMax)
+    : _min( Vector< 3, T >( std::min( pMin[0], pMax[0] ),
                             std::min( pMin[1], pMax[1] ),
                             std::min( pMin[2], pMax[2] )))
-    , _max( vector< 3, T >( std::max( pMin[0], pMax[0] ),
+    , _max( Vector< 3, T >( std::max( pMin[0], pMax[0] ),
                             std::max( pMin[1], pMax[1] ),
                             std::max( pMin[2], pMax[2] )))
 {}
 
-template< typename T > AABB< T >::AABB( const vector< 4, T >& sphere )
+template< typename T > AABB< T >::AABB( const Vector< 4, T >& sphere )
 {
     _max = _min = sphere.getCenter();
     _max += sphere.getRadius();
     _min -= sphere.getRadius();
 }
 
-template< typename T > inline bool AABB< T >::isIn( const vector< 3, T >& pos ) const
+template< typename T > inline bool AABB< T >::isIn( const Vector< 3, T >& pos ) const
 {
     if ( pos.x() > _max.x() || pos.y() > _max.y() || pos.z() > _max.z() ||
          pos.x() < _min.x() || pos.y() < _min.y() || pos.z() < _min.z( ))
@@ -160,9 +160,9 @@ template< typename T > inline bool AABB< T >::isIn( const vector< 3, T >& pos ) 
 }
 
 template< typename T > inline
-bool AABB< T >::isIn( const vector< 4, T >& sphere ) const
+bool AABB< T >::isIn( const Vector< 4, T >& sphere ) const
 {
-    const vector< 3, T >& sv = sphere.getCenter();
+    const Vector< 3, T >& sv = sphere.getCenter();
     sv += sphere.getRadius();
     if ( sv.x() > _max.x() || sv.y() > _max.y() || sv.z() > _max.z() )
         return false;
@@ -172,12 +172,12 @@ bool AABB< T >::isIn( const vector< 4, T >& sphere ) const
     return true;
 }
 
-template< typename T > inline const vector< 3, T >& AABB< T >::getMin() const
+template< typename T > inline const Vector< 3, T >& AABB< T >::getMin() const
 {
     return _min;
 }
 
-template< typename T > inline const vector< 3, T >& AABB< T >::getMax() const
+template< typename T > inline const Vector< 3, T >& AABB< T >::getMax() const
 {
     return _max;
 }
@@ -194,12 +194,12 @@ bool AABB< T >::operator!=( const AABB< T >& other ) const
     return _min != other._min || _max != other._max;
 }
 
-template< typename T > vector< 3, T > AABB< T >::getCenter() const
+template< typename T > Vector< 3, T > AABB< T >::getCenter() const
 {
     return ( _min + _max ) * 0.5f;
 }
 
-template< typename T > vector< 3, T > AABB< T >::getSize() const
+template< typename T > Vector< 3, T > AABB< T >::getSize() const
 {
     return _max - _min;
 }
@@ -207,8 +207,8 @@ template< typename T > vector< 3, T > AABB< T >::getSize() const
 template< typename T >
 void AABB< T >::merge( const AABB<T>& aabb )
 {
-    const vector< 3, T >& min = aabb.getMin();
-    const vector< 3, T >& max = aabb.getMax();
+    const Vector< 3, T >& min = aabb.getMin();
+    const Vector< 3, T >& max = aabb.getMax();
 
     if ( min.x() < _min.x() )
         _min.x() = min.x();
@@ -226,7 +226,7 @@ void AABB< T >::merge( const AABB<T>& aabb )
 }
 
 template< typename T >
-void AABB< T >::merge( const vector< 3, T >& point )
+void AABB< T >::merge( const Vector< 3, T >& point )
 {
     if ( point.x() < _min.x() )
         _min.x() = point.x();
@@ -255,8 +255,8 @@ template< typename T > inline bool AABB< T >::isEmpty() const
 }
 
 template< typename T > inline void
-AABB< T >::computeNearFar( const vector< 4, T >& plane, vector< 3, T >& nearPoint,
-                           vector< 3, T >& farPoint ) const
+AABB< T >::computeNearFar( const Vector< 4, T >& plane, Vector< 3, T >& nearPoint,
+                           Vector< 3, T >& farPoint ) const
 {
     for( size_t i = 0; i < 3; ++i )
     {
@@ -275,7 +275,7 @@ AABB< T >::computeNearFar( const vector< 4, T >& plane, vector< 3, T >& nearPoin
 
 template< typename T > AABB< T > AABB< T >::makeUnitBox()
 {
-    return AABB( vector< 3, T >::ZERO, vector< 3, T >::ONE );
+    return AABB( Vector< 3, T >(), Vector< 3, T >( 1, 1, 1 ));
 }
 
 }; //namespace vmml

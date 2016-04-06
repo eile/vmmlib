@@ -79,7 +79,7 @@ public:
      * a translation vector.
      */
     template< size_t S >
-    Matrix( const Quaternion< T >& rotation, const vector< S, T >& translation,
+    Matrix( const Quaternion< T >& rotation, const Vector< S, T >& translation,
             typename enable_if< R == S+1 && C == S+1 && S == 3 >::type* = 0 );
 
     /**
@@ -87,8 +87,8 @@ public:
      * position and up vector, following convention from gluLookAt().
      */
     template< size_t S >
-    Matrix( const vector< S, T >& eye, const vector< S, T >& lookat,
-            const vector< S, T >& up,
+    Matrix( const Vector< S, T >& eye, const Vector< S, T >& lookat,
+            const Vector< S, T >& up,
             typename enable_if< R == S+1 && C == S+1 && S == 3 >::type* = 0 );
 
     /** @name matrix-matrix operations */
@@ -133,7 +133,7 @@ public:
     /** @name matrix-vector operations */
     //@{
     /** Transform column vector by matrix ( res = matrix * vec ) */
-    vector< R, T > operator*( const vector< C, T >& other ) const;
+    Vector< R, T > operator*( const Vector< C, T >& other ) const;
     //@}
 
     /** @name Data access */
@@ -179,30 +179,30 @@ public:
     Matrix< R, C, T > operator-() const;
 
     /** @return a vector of the given column. */
-    vector< R, T > getColumn( size_t columnIndex ) const;
+    Vector< R, T > getColumn( size_t columnIndex ) const;
 
     /** Set the given column. */
-    void setColumn( size_t index, const vector< R, T >& column );
+    void setColumn( size_t index, const Vector< R, T >& column );
 
     /** @return a vector of the given row. */
-    vector< C, T > getRow( size_t index ) const;
+    Vector< C, T > getRow( size_t index ) const;
 
     /** Set the given row. */
-    void setRow( size_t index,  const vector< C, T >& row );
+    void setRow( size_t index,  const Vector< C, T >& row );
 
     /** @return the translation vector (of a 3x3 or 4x4 matrix) */
-    vector< C-1, T > getTranslation() const;
+    Vector< C-1, T > getTranslation() const;
 
     /** Set the translation vector (of a 3x3 or 4x4 matrix) */
-    Matrix< R, C, T >& setTranslation( const vector< C-1, T >& t );
+    Matrix< R, C, T >& setTranslation( const Vector< C-1, T >& t );
 
     /**
      * Decompose a 4x4 transformation matrix to eye position, lookAt position
      * and up vector.
      */
     template< size_t S >
-    void getLookAt( vector< S, T >& eye, vector< S, T >& lookAt,
-                    vector< S, T >& up,
+    void getLookAt( Vector< S, T >& eye, Vector< S, T >& lookAt,
+                    Vector< S, T >& up,
         typename enable_if< R == S+1 && C == S+1 && S == 3 >::type* = 0 ) const;
     //@}
 
@@ -253,11 +253,11 @@ public:
                         typename enable_if< R == C && R == 4, TT >::type* = 0 );
 
     template< typename TT >
-    Matrix< R, C, T >& scale( const vector< 3, TT >& scale_,
+    Matrix< R, C, T >& scale( const Vector< 3, TT >& scale_,
                         typename enable_if< R == C && R == 4, TT >::type* = 0 );
 
     template< typename TT >
-    Matrix< R, C, T >& scaleTranslation( const vector< 3, TT >& scale_,
+    Matrix< R, C, T >& scaleTranslation( const Vector< 3, TT >& scale_,
                         typename enable_if< R == C && R == 4, TT >::type* = 0 );
     //@}
 
@@ -514,7 +514,7 @@ Matrix< R, C, T >::Matrix( const Matrix< P, Q, T >& source )
 
 template< size_t R, size_t C, typename T > template< size_t O >
 Matrix< R, C, T >::Matrix( const Quaternion< T >& rotation,
-                           const vector< O, T >& translation,
+                           const Vector< O, T >& translation,
                    typename enable_if< R == O+1 && C == O+1 && O == 3 >::type* )
 {
     *this = rotation.getRotationMatrix();
@@ -526,15 +526,15 @@ Matrix< R, C, T >::Matrix( const Quaternion< T >& rotation,
 }
 
 template< size_t R, size_t C, typename T > template< size_t S >
-Matrix< R, C, T >::Matrix( const vector< S, T >& eye,
-                           const vector< S, T >& lookat,
-                           const vector< S, T >& up,
+Matrix< R, C, T >::Matrix( const Vector< S, T >& eye,
+                           const Vector< S, T >& lookat,
+                           const Vector< S, T >& up,
                    typename enable_if< R == S+1 && C == S+1 && S == 3 >::type* )
     : array() // http://stackoverflow.com/questions/5602030
 {
-    const vector< 3, T > f( vmml::normalize( lookat - eye ));
-    const vector< 3, T > s( vmml::normalize( vmml::cross( f, up )));
-    const vector< 3, T > u( vmml::cross( s, f ));
+    const Vector< 3, T > f( vmml::normalize( lookat - eye ));
+    const Vector< 3, T > s( vmml::normalize( vmml::cross( f, up )));
+    const Vector< 3, T > u( vmml::cross( s, f ));
 
     (*this)( 0, 0 ) =  s.x();
     (*this)( 0, 1 ) =  s.y();
@@ -675,9 +675,9 @@ Matrix< R, C, T >::operator*=( const Matrix< O, P, T >& right )
 }
 
 template< size_t R, size_t C, typename T >
-vector< R, T > Matrix< R, C, T >::operator*( const vector< C, T >& vec ) const
+Vector< R, T > Matrix< R, C, T >::operator*( const Vector< C, T >& vec ) const
 {
-    vector< R, T > result;
+    Vector< R, T > result;
 
     // this < R, 1 > = < R, P > * < P, 1 >
     for( size_t i = 0; i< R; ++i )
@@ -700,17 +700,17 @@ Matrix< R, C, T > Matrix< R, C, T >::operator-() const
 }
 
 template< size_t R, size_t C, typename T >
-vector< R, T > Matrix< R, C, T >::getColumn( const size_t index ) const
+Vector< R, T > Matrix< R, C, T >::getColumn( const size_t index ) const
 {
     if ( index >= C )
         throw std::runtime_error( "getColumn() - index out of bounds." );
-    vector< R, T > column;
+    Vector< R, T > column;
     ::memcpy( &column.array[0], &array[ R * index ], R * sizeof( T ));
     return column;
 }
 
 template< size_t R, size_t C, typename T >
-void Matrix< R, C, T >::setColumn( size_t index, const vector< R, T >& column )
+void Matrix< R, C, T >::setColumn( size_t index, const Vector< R, T >& column )
 {
     if ( index >= C )
         throw std::runtime_error( "setColumn() - index out of bounds." );
@@ -718,19 +718,19 @@ void Matrix< R, C, T >::setColumn( size_t index, const vector< R, T >& column )
 }
 
 template< size_t R, size_t C, typename T >
-vector< C, T > Matrix< R, C, T >::getRow( size_t index ) const
+Vector< C, T > Matrix< R, C, T >::getRow( size_t index ) const
 {
     if ( index >= R )
         throw std::runtime_error( "getRow() - index out of bounds." );
 
-    vector< C, T > row;
+    Vector< C, T > row;
     for( size_t colIndex = 0; colIndex < C; ++colIndex )
         row( colIndex ) = (*this)( index, colIndex );
     return row;
 }
 
 template< size_t R, size_t C, typename T >
-void Matrix< R, C, T >::setRow( size_t rowIndex, const vector< C, T >& row )
+void Matrix< R, C, T >::setRow( size_t rowIndex, const Vector< C, T >& row )
 {
     if ( rowIndex >= R )
         throw std::runtime_error( "setRow() - index out of bounds." );
@@ -1032,7 +1032,7 @@ Matrix< R, C, T >& Matrix< R, C, T >::pre_rotate_z( const TT angle_,
 }
 
 template< size_t R, size_t C, typename T > template< typename TT > inline
-Matrix< R, C, T >& Matrix< R, C, T >::scale( const vector< 3, TT >& scale_,
+Matrix< R, C, T >& Matrix< R, C, T >::scale( const Vector< 3, TT >& scale_,
                              typename enable_if< R == C && R == 4, TT >::type* )
 {
     array[0]  *= scale_[ 0 ];
@@ -1053,7 +1053,7 @@ Matrix< R, C, T >& Matrix< R, C, T >::scale( const vector< 3, TT >& scale_,
 
 template< size_t R, size_t C, typename T > template< typename TT > inline
 Matrix< R, C, T >& Matrix< R, C, T >::scaleTranslation(
-    const vector< 3, TT >& scale_,
+    const Vector< 3, TT >& scale_,
     typename enable_if< R == C && R == 4, TT >::type* )
 {
     array[12] *= static_cast< T >( scale_[0] );
@@ -1064,7 +1064,7 @@ Matrix< R, C, T >& Matrix< R, C, T >::scaleTranslation(
 
 
 template< size_t R, size_t C, typename T > inline Matrix< R, C, T >&
-Matrix< R, C, T >::setTranslation( const vector< C-1, T >& trans )
+Matrix< R, C, T >::setTranslation( const Vector< C-1, T >& trans )
 {
     for( size_t i = 0; i < C-1; ++i )
         array[ i + R * (C - 1) ] = trans[ i ];
@@ -1072,25 +1072,25 @@ Matrix< R, C, T >::setTranslation( const vector< C-1, T >& trans )
 }
 
 template< size_t R, size_t C, typename T > inline
-vector< C-1, T > Matrix< R, C, T >::getTranslation() const
+Vector< C-1, T > Matrix< R, C, T >::getTranslation() const
 {
-    vector< C-1, T > result;
+    Vector< C-1, T > result;
     for( size_t i = 0; i < C-1; ++i )
         result[ i ] = array[ i + R * (C - 1) ];
     return result;
 }
 
 template< size_t R, size_t C, typename T > template< size_t S >
-void Matrix< R, C, T >::getLookAt( vector< S, T >& eye, vector< S, T >& lookAt,
-                                   vector< S, T >& up,
+void Matrix< R, C, T >::getLookAt( Vector< S, T >& eye, Vector< S, T >& lookAt,
+                                   Vector< S, T >& up,
              typename enable_if< R == S+1 && C == S+1 && S == 3 >::type* ) const
 {
     const Matrix< 4, 4, T >& inv = inverse();
     const Matrix< 3, 3, T > rotation( transpose( Matrix< 3, 3, T >( *this )));
 
-    eye = inv * vector< 3, T >::ZERO;
-    up = rotation * vector< 3, T >::UP;
-    lookAt = rotation * vector< 3, T >::FORWARD;
+    eye = inv * Vector< 3, T >();
+    up = rotation * Vector3::up< T >();
+    lookAt = rotation * Vector3::forward< T >();
     lookAt.normalize();
     lookAt = eye + lookAt;
 }

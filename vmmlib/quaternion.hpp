@@ -54,7 +54,7 @@ public:
     Quaternion( T x, T y, T z, T w );
 
     /** Construct a rotation quaternion */
-    Quaternion( T angle, vector< 3, T > axis );
+    Quaternion( T angle, Vector< 3, T > axis );
 
     // uses the top-left 3x3 part of the supplied matrix as rotation matrix
     template< size_t M >
@@ -159,9 +159,9 @@ T dot( const Quaternion< T >& p, const Quaternion< T >& q )
 }
 
 template < typename T >
-vector< 3, T > cross( const Quaternion< T >& p, const Quaternion< T >& q )
+Vector< 3, T > cross( const Quaternion< T >& p, const Quaternion< T >& q )
 {
-    return vector< 3, T >( p.array[1] * q.array[2] - p.array[2] * q.array[1],
+    return Vector< 3, T >( p.array[1] * q.array[2] - p.array[2] * q.array[1],
                            p.array[2] * q.array[0] - p.array[0] * q.array[2],
                            p.array[0] * q.array[1] - p.array[1] * q.array[0] );
 }
@@ -199,7 +199,7 @@ Quaternion< T >::Quaternion( const Matrix< M, M, T >& rot,
     }
     else
     {
-        const vector< 3, T > diag( rot( 0, 0 ), rot( 1, 1 ), rot( 2, 2 ) );
+        const Vector< 3, T > diag( rot( 0, 0 ), rot( 1, 1 ), rot( 2, 2 ) );
         const size_t largest = diag.find_max_index();
 
         // 0, 0 is largest
@@ -258,7 +258,7 @@ Quaternion< T >::Quaternion( const Matrix< M, M, T >& rot,
 
 
 template< typename T >
-Quaternion< T >::Quaternion( const T angle, vector< 3, T > axis )
+Quaternion< T >::Quaternion( const T angle, Vector< 3, T > axis )
 {
     axis.normalize();
     const T sinAngle2 = std::sin( angle * 0.5 );

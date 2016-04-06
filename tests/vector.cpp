@@ -36,10 +36,7 @@ using namespace vmml;
 
 BOOST_AUTO_TEST_CASE(base)
 {
-    vector< 4, double > v;
-    double data[] = { 1, 2, 3, 4 };
-
-    v.iter_set( data, data+4 );
+    Vector< 4, double > v( 1, 2, 3, 4 );
 
     // tests copyFrom1DimCArray function
     size_t tmp = 1;
@@ -49,8 +46,7 @@ BOOST_AUTO_TEST_CASE(base)
     }
 
     tmp = 4;
-    float dataf[] = { 4, 3, 2, 1 };
-    v.iter_set( dataf, dataf + 4 );
+    v = Vector< 4, double >( 4, 3, 2, 1 );
     for( size_t index = 0; index < 4; ++index, --tmp )
     {
         BOOST_CHECK(v.at( index ) == tmp);
@@ -59,12 +55,12 @@ BOOST_AUTO_TEST_CASE(base)
 
 BOOST_AUTO_TEST_CASE(plus)
 {
-    vector< 4, double > v;
+    Vector< 4, double > v;
     double data[] = { 1, 2, 3, 4 };
 
     // tests operator+ function
-    vector< 4, double > v_other;
-    vector< 4, double > v_result;
+    Vector< 4, double > v_other;
+    Vector< 4, double > v_result;
 
     v = data;
 
@@ -101,12 +97,12 @@ BOOST_AUTO_TEST_CASE(plus)
 
 BOOST_AUTO_TEST_CASE(minus)
 {
-    vector< 4, double > v;
+    Vector< 4, double > v;
     double data[] = { 1, 2, 3, 4 };
 
     // tests operator- function
-    vector< 4, double > v_other;
-    vector< 4, double > v_result;
+    Vector< 4, double > v_other;
+    Vector< 4, double > v_result;
     v = data;
 
     double datad[] = { 1, 2, 3, 4 };
@@ -142,12 +138,12 @@ BOOST_AUTO_TEST_CASE(minus)
 
 BOOST_AUTO_TEST_CASE(times)
 {
-    vector< 4, double > v;
+    Vector< 4, double > v;
     double data[] = { 1, 2, 3, 4 };
 
     // tests operator* function
-    vector< 4, double > v_other;
-    vector< 4, double > v_result;
+    Vector< 4, double > v_other;
+    Vector< 4, double > v_result;
 
     v = data;
 
@@ -183,12 +179,12 @@ BOOST_AUTO_TEST_CASE(times)
 
 BOOST_AUTO_TEST_CASE(divide)
 {
-    vector< 4, double > v;
+    Vector< 4, double > v;
     double data[] = { 1, 2, 3, 4 };
 
     // tests operator/ function
-    vector< 4, double > v_other;
-    vector< 4, double > v_result;
+    Vector< 4, double > v_other;
+    Vector< 4, double > v_result;
 
     v = data;
 
@@ -225,18 +221,18 @@ BOOST_AUTO_TEST_CASE(divide)
 
 BOOST_AUTO_TEST_CASE(vec_norm)
 {
-    vector< 4, double > v;
+    Vector< 4, double > v;
     double data[] = { 1, 2, 3, 4 };
 
     // tests norm / normSquared (length/lengthSquared) computation
-    vector< 4, double > vec;
+    Vector< 4, double > vec;
     vec = data;
 
-    double normSquared = vec.squared_length();
+    double normSquared = vec.lengthSquared();
     BOOST_CHECK(normSquared == 1 * 1 + 2 * 2 + 3 * 3 + 4 * 4);
 
     double norm = vec.length();
-    BOOST_CHECK(sqrt( normSquared ) == norm);
+    BOOST_CHECK( std::sqrt( normSquared ) == norm );
 
     // tests normalize
     vec = data;
@@ -246,21 +242,21 @@ BOOST_AUTO_TEST_CASE(vec_norm)
 
     // constructor tests
     double vData[] = { 1, 2, 3, 4 };
-    vector< 4, double > v4( 1, 2, 3, 4 );
+    Vector< 4, double > v4( 1, 2, 3, 4 );
 
-    vector< 2, double > v2C;
+    Vector< 2, double > v2C;
     v2C = vData;
-    vector< 2, double > v2( 1, 2 );
+    Vector< 2, double > v2( 1, 2 );
 
     BOOST_CHECK(v2 == v2C );
 
-    vector< 3, double > v3C;
+    Vector< 3, double > v3C;
     v3C = vData;
-    vector< 3, double > v3( 1, 2, 3 );
+    Vector< 3, double > v3( 1, 2, 3 );
 
     BOOST_CHECK(v3 == v3C );
 
-    vector< 4, double > v4C;
+    Vector< 4, double > v4C;
     v4C = vData;
 
     BOOST_CHECK(v4 == v4C);
@@ -268,65 +264,39 @@ BOOST_AUTO_TEST_CASE(vec_norm)
     double vData2[] = { 23, 23, 23, 23 };
     v4C = vData2;
 
-    vector< 4, double > v4_( 23 );
+    Vector< 4, double > v4_( 23 );
     BOOST_CHECK(v4_ == v4C);
 
-    v3 = vData;
-    v4C = vData;
-    vector< 4, double > v4from3_1( v3, vData[ 3 ] );
-    BOOST_CHECK(v4from3_1 == v4C);
-
-    double hvData[] = { 1., 2., 3., 0.25 };
-    double xvData[] = { 4.0, 8.0, 12.0 };
-
-    vector< 4, double > homogenous;
-    homogenous.iter_set( hvData, hvData + 4 );
-    vector< 3, double > nonh;
-    nonh.iter_set( xvData, xvData + 3 );
-
-    vector< 4, double > htest( nonh );
+    const Vector< 4, double > homogenous( 1., 2., 3., 0.25 );
+    const Vector< 3, double > nonh( 4.0, 8.0, 12.0 );
+    const Vector< 4, double > htest( nonh );
 
     // to-homogenous-coordinates ctor
-    BOOST_CHECK((htest == vector< 4, double >( 4, 8., 12., 1. ) ));
+    BOOST_CHECK((htest == Vector< 4, double >( 4., 8., 12., 1. ) ));
 
-    vector< 3, double > nhtest( homogenous );
+    Vector< 3, double > nhtest( homogenous );
 
     // from homogenous-coordiates ctor
     BOOST_CHECK(nhtest == nonh );
 
-    // set tests
-    vec.set( 2, 3, 4, 5 );
-    vector< 4, double > vecCorrect;
-    double vCData[] = { 2, 3, 4, 5 };
-    vecCorrect = vCData;
-    BOOST_CHECK(vec == vecCorrect);
-
-    vec.set( 2 );
-
-    double vCData2[] = { 2, 2, 2, 2 };
-    vecCorrect = vCData2;
-    BOOST_CHECK( vec == vecCorrect );
-
-    vector< 3, double > v1( 2, 3, 4 );
-
     // component accessors
-    vector< 4, double > vd( 1, 2, 3, 4 );
+    Vector< 4, double > vd( 1, 2, 3, 4 );
     BOOST_CHECK( vd.x() == 1 && vd.y() == 2 && vd.z() == 3 && vd.w() == 4 );
 }
 
 BOOST_AUTO_TEST_CASE(dotprod)
 {
     // dot product
-    vector< 3, float > v0( 1, 2, 3 );
-    vector< 3, float > v1( -6, 5, -4 );
+    Vector< 3, float > v0( 1, 2, 3 );
+    Vector< 3, float > v1( -6, 5, -4 );
     BOOST_CHECK( v0.dot( v1 ) == -8 );
 }
 
 BOOST_AUTO_TEST_CASE(crossprod)
 {
-    vector< 3, float > v0( 1, 2, 3 );
-    const vector< 3, float > v1( -6, 5, -4 );
-    const vector< 3, float > vcorrect( -23, -14, 17 );
+    Vector< 3, float > v0( 1, 2, 3 );
+    const Vector< 3, float > v1( -6, 5, -4 );
+    const Vector< 3, float > vcorrect( -23, -14, 17 );
 
     BOOST_CHECK_EQUAL( cross( v0, v1 ), vcorrect );
     BOOST_CHECK_EQUAL( v0.cross( v1 ), vcorrect );
@@ -334,117 +304,62 @@ BOOST_AUTO_TEST_CASE(crossprod)
 
 BOOST_AUTO_TEST_CASE(normal)
 {
-    const vmml::vector< 3, float > v1( 0.f, 0.f, 0.f );
-    const vmml::vector< 3, float > v2( 0.f, 1.f, 0.f );
-    const vmml::vector< 3, float > v3( 1.f, 0.f, 0.f );
-    const vmml::vector< 3, float > n( 0.f, 0.f, -1.f );
+    const Vector< 3, float > v1( 0.f, 0.f, 0.f );
+    const Vector< 3, float > v2( 0.f, 1.f, 0.f );
+    const Vector< 3, float > v3( 1.f, 0.f, 0.f );
+    const Vector< 3, float > n( 0.f, 0.f, -1.f );
     BOOST_CHECK_EQUAL( vmml::compute_normal( v1, v2, v3 ), n );
-}
-
-BOOST_AUTO_TEST_CASE(minMax)
-{
-    vector< 4, float > vf( -1.0f, 3.0f, -99.0f, -0.9f );
-    vector< 4, size_t > vui( 0, 5, 2, 4 );
-
-    size_t index = vf.find_min_index();
-    float f = vf.find_min();
-
-    BOOST_CHECK( index == 2 && f == -99.0f );
-
-    index = vf.find_max_index();
-    f = vf.find_max();
-    BOOST_CHECK( index == 1 && f == 3.0f );
-
-    index = vui.find_min_index();
-    size_t ui = vui.find_min();
-    BOOST_CHECK( index == 0 && ui == 0 );
-
-    index = vui.find_max_index();
-    ui = vui.find_max();
-    BOOST_CHECK( index == 1 && ui == 5 );
 }
 
 BOOST_AUTO_TEST_CASE(product)
 {
-    const vector< 3, float > v0( 1, 2, 3 );
+    const Vector< 3, float > v0( 1, 2, 3 );
     BOOST_CHECK_EQUAL( v0.product(), 6 );
 
-    const vector< 3, int > v1( -6, 5, -4 );
+    const Vector< 3, int > v1( -6, 5, -4 );
     BOOST_CHECK_EQUAL( v1.product(), 120 );
 }
 
 BOOST_AUTO_TEST_CASE(tbd1)
 {
-    vector< 4, float > v1( -1.0f, 3.0f, -99.0f, -0.9f );
+    Vector< 4, float > v1( -1.0f, 3.0f, -99.0f, -0.9f );
     float f = 4.0f;
-    vector< 4, float > v_scaled = f * v1;
+    Vector< 4, float > v_scaled = f * v1;
 
-    BOOST_CHECK(v_scaled == (vector< 4, float >( -4.0f, 12.0f, -396.0f, -3.6f ) ));
-
-
-    // ???
-    vector< 3, float > vf( 3.0, 2.0, 1.0 );
-    vector< 3, double > vd( vf );
-    vector< 3, double >::const_iterator it = vd.begin(), it_end = vd.end();
-    vector< 3, float >::const_iterator fit = vf.begin();
-    for( ; it != it_end; ++it, ++fit )
-    {
-        BOOST_CHECK(*it == *fit);
-    }
-    vd = vf;
-    for( ; it != it_end; ++it, ++fit )
-    {
-        BOOST_CHECK(*it == *fit);
-    }
+    BOOST_CHECK(v_scaled == (Vector< 4, float >( -4.0f, 12.0f, -396.0f, -3.6f ) ));
 }
 
 BOOST_AUTO_TEST_CASE(subVector)
 {
-    vector< 4, float > v4( 3.0, 2.0, 1.0, 1.0 );
-    vector< 3, float > v3 = v4.get_sub_vector< 3 >();
+    Vector< 4, float > v4( 3.0, 2.0, 1.0, 1.0 );
+    Vector< 3, float > v3 = v4.getSubVector< 3 >();
     BOOST_CHECK(v3.x() == v4.x() && v3.y() == v4.y());
     v3.normalize();
 
     BOOST_CHECK_NE( v3.x(), v4.x( ));
     BOOST_CHECK_NE( v3.y(), v4.y( ));
 
-    v4.set_sub_vector< 3, 1 >( v3 );
+    v4.setSubVector< 3, 1 >( v3 );
     BOOST_CHECK_EQUAL( v3.x(), v4.y( ));
     BOOST_CHECK_EQUAL( v3.y(), v4.z( ));
 }
 
-BOOST_AUTO_TEST_CASE(tbd2)
-{
-    //elementwise sqrt
-    vector< 4, double > vsq(9.0, 4.0, 1.0, 2.0);
-    vector< 4, double > vsq_check( 3.0, 2.0, 1.0, std::sqrt( 2.0 ));
-    vsq.sqrt_elementwise();
-    BOOST_CHECK_EQUAL( vsq, vsq_check );
-
-    //elementwise sqrt
-    vector< 4, float > vr( 9.0, 4.0, 1.0, 2.0 );
-    vector< 4, float > vr_check( 0.1111111119389534, 0.25, 1, 0.5 );
-    vr.reciprocal();
-    BOOST_CHECK(vr == vr_check);
-}
-
-BOOST_AUTO_TEST_CASE(l2norm)
-{
-    vector< 4, float > vr( 9.0, 4.0, 1.0, 2.0 );
-    double v_norm_check = 10.09950493836208;
-    double v_norm = vr.norm();
-
-    BOOST_CHECK((v_norm - v_norm_check) < 0.0001);
-}
-
 BOOST_AUTO_TEST_CASE(rotateVec)
 {
-    vmml::Vector3f vector = vmml::Vector3f::FORWARD;
-    vector.rotate( float( M_PI ), vmml::Vector3f::UP );
-    BOOST_CHECK_MESSAGE( vector.equals( vmml::Vector3f::BACKWARD ), vector );
+    vmml::Vector3f vector = vmml::Vector3::forward< float >();
+    vector.rotate( float( M_PI ), vmml::Vector3::up< float >( ));
+    BOOST_CHECK_MESSAGE( vector.equals( vmml::Vector3::backward< float >( )),
+                         vector );
     BOOST_CHECK_MESSAGE( vmml::rotate( vector, float( M_PI ),
-                                       vmml::Vector3f::LEFT ).equals(
-                                           vmml::Vector3f::FORWARD ),
+                                       vmml::Vector3::left< float >( )).equals(
+                                           vmml::Vector3::forward< float >( )),
                          vmml::rotate( vector, float( M_PI ),
-                                       vmml::Vector3f::LEFT ));
+                                       vmml::Vector3::left< float >( )));
 }
+
+// Verify code by instantiating some templates:
+template class vmml::Vector< 1, float >;
+template class vmml::Vector< 2, double >;
+template class vmml::Vector< 3, short >;
+template class vmml::Vector< 3, int >;
+template class vmml::Vector< 4, long >;

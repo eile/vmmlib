@@ -48,68 +48,41 @@
 
 namespace vmml
 {
-template< size_t M, typename T > class vector
+template< size_t M, typename T > class Vector
 {
 public:
-    typedef T                                       value_type;
-    typedef T*                                      iterator;
-    typedef const T*                                const_iterator;
-    typedef std::reverse_iterator< iterator >       reverse_iterator;
-    typedef std::reverse_iterator< const_iterator > const_reverse_iterator;
-
-    static const size_t DIMENSION = M;
-
     // constructors
-    vector() : array() {} // http://stackoverflow.com/questions/5602030
-    explicit vector( const T& a ); // sets all components to a;
-    vector( const T& x, const T& y );
-    vector( const T& x, const T& y, const T& z );
-    vector( const T& x, const T& y, const T& z, const T& w );
-
-#ifndef SWIG
-    // initializes the first M-1 values from vector_, the last from last_
-    vector( const vector< M-1, T >& vector_, T last_ );
-#endif
-
-    vector( const T* values );
+    Vector() : array() {} // http://stackoverflow.com/questions/5602030
+    explicit Vector( const T& a ); // sets all components to a;
+    template< typename U > Vector( U x, U y,
+                                   typename enable_if< M == 2, U >::type* = 0 );
+    template< typename U > Vector( U x, U y, U z,
+                                   typename enable_if< M == 3, U >::type* = 0 );
+    template< typename U > Vector( U x, U y, U z, U w,
+                                   typename enable_if< M == 4, U >::type* = 0 );
+    Vector( const T* values );
 
 #ifdef __OSG_MATH
     template< typename OSGVEC3 >
-    explicit vector( const OSGVEC3& from,
-                     typename enable_if< M == 3, OSGVEC3 >::type* = 0 );
+    Vector( const OSGVEC3& from,
+            typename enable_if< M == 3, OSGVEC3 >::type* = 0 );
 #endif
 
     // vec< M > with homogeneous coordinates <-> vec< M-1 > conversion ctor
     // to-homogenous-coordinates ctor
     template< size_t N >
-    vector( const vector< N, T >& source_,
+    Vector( const Vector< N, T >& source_,
             typename enable_if< N == M - 1 >::type* = 0 );
 
     // from-homogenous-coordinates vector
     template< size_t N >
-    vector( const vector< N, T >& source_,
+    Vector( const Vector< N, T >& source_,
             typename enable_if< N == M + 1 >::type* = 0  );
 
-    template< typename U > vector( const vector< M, U >& source_ );
+    template< typename U > Vector( const Vector< M, U >& source_ );
 
-    // iterators
-    inline iterator begin();
-    inline iterator end();
-    inline const_iterator begin() const;
-    inline const_iterator end() const;
-    inline reverse_iterator rbegin();
-    inline reverse_iterator rend();
-    inline const_reverse_iterator rbegin() const;
-    inline const_reverse_iterator rend() const;
-
-#  ifndef VMMLIB_NO_CONVERSION_OPERATORS
-    // conversion operators
-    inline operator T*();
-    inline operator const T*() const;
-#  else
     inline T& operator[]( size_t index );
     inline const T& operator[]( size_t index ) const;
-#  endif
 
     // accessors
     inline T& operator()( size_t index );
@@ -138,177 +111,112 @@ public:
     inline const T& b() const;
     inline const T& a() const;
 
-    bool operator==( const vector& other ) const;
-    bool operator!=( const vector& other ) const;
-    bool equals( const vector& other,
+    bool operator==( const Vector& other ) const;
+    bool operator!=( const Vector& other ) const;
+    bool equals( const Vector& other,
                  T tolerance = std::numeric_limits< T >::epsilon( )) const;
-    bool operator<( const vector& other ) const;
+    bool operator<( const Vector& other ) const;
 
-    // remember kids: c_arrays are dangerous and evil!
-    vector& operator=( const T* c_array );
-    T operator=( T filler );
-
-    vector& operator=( const vector& other );
-
-    // returns void to avoid 'silent' loss of precision when chaining
-    template< typename U > void operator=( const vector< M, U >& other );
+    Vector& operator=( const Vector& other );
 
     // to-homogenous-coordinates assignment operator
     // non-chainable because of sfinae
     template< size_t N >
     typename enable_if< N == M - 1 >::type*
-        operator=( const vector< N, T >& source_ );
+        operator=( const Vector< N, T >& source_ );
 
     // from-homogenous-coordinates assignment operator
     // non-chainable because of sfinae
     template< size_t N >
     typename enable_if< N == M + 1 >::type*
-        operator=( const vector< N, T >& source_ );
+        operator=( const Vector< N, T >& source_ );
 
-    vector operator*( const vector& other ) const;
-    vector operator/( const vector& other ) const;
-    vector operator+( const vector& other ) const;
-    vector operator-( const vector& other ) const;
+    Vector operator*( const Vector& other ) const;
+    Vector operator/( const Vector& other ) const;
+    Vector operator+( const Vector& other ) const;
+    Vector operator-( const Vector& other ) const;
 
-    void operator*=( const vector& other );
-    void operator/=( const vector& other );
-    void operator+=( const vector& other );
-    void operator-=( const vector& other );
+    void operator*=( const Vector& other );
+    void operator/=( const Vector& other );
+    void operator+=( const Vector& other );
+    void operator-=( const Vector& other );
 
-    vector operator*( const T other ) const;
-    vector operator/( const T other ) const;
-    vector operator+( const T other ) const;
-    vector operator-( const T other ) const;
+    Vector operator*( const T other ) const;
+    Vector operator/( const T other ) const;
+    Vector operator+( const T other ) const;
+    Vector operator-( const T other ) const;
 
     void operator*=( const T other );
     void operator/=( const T other );
     void operator+=( const T other );
     void operator-=( const T other );
 
-    vector operator-() const;
+    Vector operator-() const;
 
-    const vector& negate();
-
-    void set( T a ); // sets all components to a;
-#ifndef SWIG
-    void set( const vector< M-1, T >& v, T a );
-#endif
-    template< size_t N >
-    void set( const vector< N, T >& v );
-
-    // sets the first few components to a certain value
-    void set( T x, T y );
-    void set( T x, T y, T z );
-    void set( T x, T y, T z, T w );
-
-    template< typename input_iterator_t >
-    void iter_set( input_iterator_t begin_, input_iterator_t end_ );
-
-    // compute the cross product of two vectors
+    // compute the cross product of two Vectors
     // note: there's also a free function:
-    // vector<> cross( const vector<>, const vector<> )
+    // Vector<> cross( const Vector<>, const Vector<> )
     template< typename TT >
-    vector< M, T >& cross( const vector< M, TT >& b,
+    Vector< M, T >& cross( const Vector< M, TT >& b,
                            typename enable_if< M == 3, TT >::type* = 0 );
 
-    // compute the dot product of two vectors
+    // compute the dot product of two Vectors
     // note: there's also a free function:
-    // T dot( const vector<>, const vector<> );
-    inline T dot( const vector& other ) const;
+    // T dot( const Vector<>, const Vector<> );
+    inline T dot( const Vector& other ) const;
 
-    // normalize the vector
+    // normalize the Vector
     // note: there's also a free function:
-    // vector<> normalize( const vector<> );
+    // Vector<> normalize( const Vector<> );
     inline T normalize();
 
-    //sets all vector components to random values
-    //remember to set srand( seed );
-    //if seed is set to -1, srand( seed ) was set outside set_random
-    //otherwise srand( seed ) will be called with the given seed
-    void set_random( int seed = -1 );
-
     inline T length() const;
-    inline T squared_length() const;
+    inline T lengthSquared() const;
+    inline T distance( const Vector& other ) const;
+    inline T distanceSquared( const Vector& other ) const;
 
-    inline T distance( const vector& other ) const;
-    inline T squared_distance( const vector& other ) const;
-
-    /** @return the product of all elements of this vector */
+    /** @return the product of all elements of this Vector */
     T product() const;
 
     template< typename TT >
-    vector< 3, T >& rotate( T theta, vector< M, TT > axis,
+    Vector< 3, T >& rotate( T theta, Vector< M, TT > axis,
                             typename enable_if< M == 3, TT >::type* = 0 );
 
-    /** @return the sub vector of the given length at the given offset. */
+    /** @return the sub Vector of the given length at the given offset. */
     template< size_t N, size_t O = 0 >
-    vector< N, T > get_sub_vector( typename enable_if< M >= N+O >::type* = 0 )
+    Vector< N, T > getSubVector( typename enable_if< M >= N+O >::type* = 0 )
         const;
 
-    /** Set the sub vector of the given length at the given offset. */
+    /** Set the sub Vector of the given length at the given offset. */
     template< size_t N, size_t O = 0 >
-    void set_sub_vector( const vector< N, T >& sub,
+    void setSubVector( const Vector< N, T >& sub,
                          typename enable_if< M >= N+O >::type* = 0 );
 
     // sphere functions - sphere layout: center xyz, radius w
     template< typename TT >
-    inline vector< 3, T > project_point_onto_sphere(
-        const vector< 3, TT >& point,
+    inline Vector< 3, T > project_point_onto_sphere(
+        const Vector< 3, TT >& point,
         typename enable_if< M == 4, TT >::type* = 0 ) const;
 
     // returns a negative distance if the point lies in the sphere
     template< typename TT >
-    inline T distance_to_sphere( const vector< 3, TT >& point,
+    inline T distance_to_sphere( const Vector< 3, TT >& point,
         typename enable_if< M == 4, TT >::type* = 0 ) const;
 
     // plane functions - plane layout; normal xyz, distance w
     template< typename TT >
-    inline T distance_to_plane( const vector< 3, TT >& point,
+    inline T distance_to_plane( const Vector< 3, TT >& point,
         typename enable_if< M == 4, TT >::type* = 0 ) const;
 
     template< typename TT >
-    inline vector< 3, T > project_point_onto_plane(
-        const vector< 3, TT >& point,
+    inline Vector< 3, T > project_point_onto_plane(
+        const Vector< 3, TT >& point,
         typename enable_if< M == 4, TT >::type* = 0 ) const;
 
-    // returns the index of the minimal resp. maximal value in the vector
-    size_t      find_min_index() const;
-    size_t      find_max_index() const;
-
-    // returns minimal resp. maximal value in the vector
-    T&          find_min();
-    T&          find_max();
-    const T&    find_min() const;
-    const T&    find_max() const;
-
-    void clamp( const T& min = 0.0, const T& max = 1.0 );
-
-    inline static size_t size(); // returns M
-
-    bool is_unit_vector() const;
-
-    // perturbs each component by randomly + or - the perturbation parameter
-    void perturb( T perturbation = 0.0001 );
-
-    void sqrt_elementwise();
-    double norm() const; //l2 norm
-
-    // computes the reciprocal value for each component, x = 1/x;
-    // WARNING: might result in nans if division by 0!
-    void reciprocal();
-    // computes the reciprocal value for each component, x = 1/x;
-    // checks every component for 0, sets to max value if zero.
-    void reciprocal_safe();
-
-    template< typename TT >
-    void cast_from( const vector< M, TT >& other );
-
-    size_t nnz() const;
-
-    // test each component of the vector for isnan and isinf
+    // test each component of the Vector for isnan and isinf
     //  inline bool is_valid() const; -> moved to class validator
 
-    friend std::ostream& operator<< ( std::ostream& os, const vector& vector_ )
+    friend std::ostream& operator<< ( std::ostream& os, const Vector& Vector_ )
     {
         const std::ios::fmtflags flags = os.flags();
         const int                prec  = os.precision();
@@ -317,7 +225,7 @@ public:
         os.precision( 5 );
         os << "[ ";
         for( size_t index = 0; index < M; ++index )
-            os << std::setw(10) << vector_.at( index ) << " ";
+            os << std::setw(10) << Vector_.at( index ) << " ";
         os << "]";
         os.precision( prec );
         os.setf( flags );
@@ -325,162 +233,132 @@ public:
     }
 
     T array[ M ];    //!< storage
+}; // class Vector
 
-#ifndef SWIG
-    // Vector3 defaults
-    static const vector FORWARD;
-    static const vector BACKWARD;
-    static const vector UP;
-    static const vector DOWN;
-    static const vector LEFT;
-    static const vector RIGHT;
-
-    static const vector ONE;
-    static const vector ZERO;
-
-    // Unit vectors
-    static const vector UNIT_X;
-    static const vector UNIT_Y;
-    static const vector UNIT_Z;
-#endif
-
-}; // class vector
-
-//
-// typedefs and statics
-//
-#ifndef SWIG
-template< size_t M, typename T >
-const vector< M, T > vector< M, T >::FORWARD( 0, 0, -1 );
-template< size_t M, typename T >
-const vector< M, T > vector< M, T >::BACKWARD( 0, 0, 1 );
-template< size_t M, typename T >
-const vector< M, T > vector< M, T >::UP( 0, 1, 0 );
-template< size_t M, typename T >
-const vector< M, T > vector< M, T >::DOWN( 0, -1, 0 );
-template< size_t M, typename T >
-const vector< M, T > vector< M, T >::LEFT( -1, 0, 0 );
-template< size_t M, typename T >
-const vector< M, T > vector< M, T >::RIGHT( 1, 0, 0 );
-template< size_t M, typename T >
-
-const vector< M, T > vector< M, T >::ONE( static_cast< T >( 1 ));
-template< size_t M, typename T >
-const vector< M, T > vector< M, T >::ZERO( static_cast< T >( 0 ));
-template< size_t M, typename T >
-
-const vector< M, T > vector< M, T >::UNIT_X( 1, 0, 0 );
-template< size_t M, typename T >
-const vector< M, T > vector< M, T >::UNIT_Y( 0, 1, 0 );
-template< size_t M, typename T >
-const vector< M, T > vector< M, T >::UNIT_Z( 0, 0, 1 );
-#endif
-
-//
-//  some free functions for convenience
-//
-
-template< size_t M, typename T >
-bool equals( const vector< M, T >& a, const vector< M, T >& b )
+/** @name Vector3 unit vectors */
+//@{
+namespace Vector3
 {
-    return a.equals( b );
+template< class T > Vector< 3, T > forward()
+    { return Vector< 3, T >( 0, 0, -1 ); }
+
+template< class T > Vector< 3, T > backward()
+   { return Vector< 3, T >( 0, 0, 1 ); }
+
+template< class T > Vector< 3, T > up()
+    { return Vector< 3, T >( 0, 1, 0 ); }
+
+template< class T > Vector< 3, T > down()
+    { return Vector< 3, T >( 0, -1, 0 ); }
+
+template< class T > Vector< 3, T > left()
+    { return Vector< 3, T >( -1, 0, 0 ); }
+
+template< class T > Vector< 3, T > right()
+    { return Vector< 3, T >( 1, 0, 0 ); }
+
+template< class T > Vector< 3, T > x() { return Vector< 3, T >( 1, 0, 0 ); }
+template< class T > Vector< 3, T > y() { return Vector< 3, T >( 0, 1, 0 ); }
+template< class T > Vector< 3, T > z() { return Vector< 3, T >( 0, 0, 1 ); }
 }
+//@}
 
 // allows float * vector, not only vector * float
 template< size_t M, typename T >
-static vector< M, T > operator* ( T factor, const vector< M, T >& vector_ )
+static Vector< M, T > operator* ( T factor, const Vector< M, T >& Vector_ )
 {
-    return vector_ * factor;
+    return Vector_ * factor;
 }
 
 template< size_t M, typename T >
-inline T dot( const vector< M, T >& first, const vector< M, T >& second )
+inline T dot( const Vector< M, T >& first, const Vector< M, T >& second )
 {
     return first.dot( second );
 }
 
 template< size_t M, typename T >
-inline vector< M, T > cross( vector< M, T > a, const vector< M, T >& b )
+inline Vector< M, T > cross( Vector< M, T > a, const Vector< M, T >& b )
 {
     return a.cross( b );
 }
 
 template< size_t M, typename T >
-vector< M, T > compute_normal( const vector< M, T >& a, const vector< M, T >& b,
-                               const vector< M, T >& c )
+Vector< M, T > compute_normal( const Vector< M, T >& a, const Vector< M, T >& b,
+                               const Vector< M, T >& c )
 {
     // right hand system, CCW triangle
-    const vector< M, T > u = b - a;
-    const vector< M, T > v = c - a;
-    vector< M, T > w = cross( u, v );
+    const Vector< M, T > u = b - a;
+    const Vector< M, T > v = c - a;
+    Vector< M, T > w = cross( u, v );
     w.normalize();
     return w;
 }
 
 template< typename T >
-vector< 3, T > rotate( vector< 3, T > vec, const T theta,
-                       const vector< 3, T >& axis )
+Vector< 3, T > rotate( Vector< 3, T > vec, const T theta,
+                       const Vector< 3, T >& axis )
 {
     return vec.rotate( theta, axis );
 }
 
 
 template< size_t M, typename T >
-inline vector< M, T > normalize( vector< M, T > vector_ )
+inline Vector< M, T > normalize( Vector< M, T > Vector_ )
 {
-    vector_.normalize();
-    return vector_;
+    Vector_.normalize();
+    return Vector_;
 }
 
 template< typename T >
-inline vector< 4, T > compute_plane( const vector< 3, T >& a,
-                                     const vector< 3, T >& b,
-                                     const vector< 3, T >& c )
+inline Vector< 4, T > compute_plane( const Vector< 3, T >& a,
+                                     const Vector< 3, T >& b,
+                                     const Vector< 3, T >& c )
 {
-    const vector< 3, T > cb = b - c;
-    const vector< 3, T > ba = a - b;
+    const Vector< 3, T > cb = b - c;
+    const Vector< 3, T > ba = a - b;
 
-    vector< 4, T > plane = vector< 4, T >( cross( cb, ba ));
+    Vector< 4, T > plane = Vector< 4, T >( cross( cb, ba ));
     plane.normalize();
     plane.w() = -plane.x() * a.x() - plane.y() * a.y() - plane.z() * a.z();
     return plane;
 }
+//@}
 
-template< size_t M, typename T >
-vector< M, T >::vector( const T& _a )
+template< size_t M, typename T > Vector< M, T >::Vector( const T& value )
 {
-    for( iterator it = begin(), it_end = end(); it != it_end; ++it )
-    {
-        *it = _a;
-    }
+    for( size_t i = 0; i < M; ++i )
+        array[ i ] = value;
+}
+
+template< size_t M, typename T > template< typename U >
+Vector< M, T >::Vector( const U _x, const U _y,
+                        typename enable_if< M == 2, U >::type* )
+{
+    array[ 0 ] = T( _x );
+    array[ 1 ] = T( _y );
+}
+
+template< size_t M, typename T > template< typename U >
+Vector< M, T >::Vector( const U _x, const U _y, const U _z,
+                        typename enable_if< M == 3, U >::type* )
+{
+    array[ 0 ] = T( _x );
+    array[ 1 ] = T( _y );
+    array[ 2 ] = T( _z );
+}
+
+template< size_t M, typename T > template< typename U >
+Vector< M, T >::Vector( const U _x, const U _y, const U _z, const U _w,
+                        typename enable_if< M == 4, U >::type* )
+{
+    array[ 0 ] = T( _x );
+    array[ 1 ] = T( _y );
+    array[ 2 ] = T( _z );
+    array[ 3 ] = T( _w );
 }
 
 template< size_t M, typename T >
-vector< M, T >::vector( const T& _x, const T& _y )
-{
-    array[ 0 ] = _x;
-    array[ 1 ] = _y;
-}
-
-template< size_t M, typename T >
-vector< M, T >::vector( const T& _x, const T& _y, const T& _z )
-{
-    array[ 0 ] = _x;
-    array[ 1 ] = _y;
-    array[ 2 ] = _z;
-}
-
-template< size_t M, typename T >
-vector< M, T >::vector( const T& _x, const T& _y, const T& _z, const T& _w )
-{
-    array[ 0 ] = _x;
-    array[ 1 ] = _y;
-    array[ 2 ] = _z;
-    array[ 3 ] = _w;
-}
-
-template< size_t M, typename T >
-vector< M, T >::vector( const T* values )
+Vector< M, T >::Vector( const T* values )
 {
     memcpy( array, values, M * sizeof( T ));
 }
@@ -488,7 +366,7 @@ vector< M, T >::vector( const T* values )
 #ifdef __OSG_MATH
 template< size_t M, typename T >
 template< typename OSGVEC3 >
-vector< M, T >::vector( const OSGVEC3& from,
+Vector< M, T >::Vector( const OSGVEC3& from,
                         typename enable_if< M == 3, OSGVEC3 >::type* )
 {
     array[ 0 ] = from.x();
@@ -497,234 +375,120 @@ vector< M, T >::vector( const OSGVEC3& from,
 }
 #endif
 
-#ifndef SWIG
-template< size_t M, typename T >
-// initializes the first M-1 values from vector_, the last from last_
-vector< M, T >::vector( const vector< M-1, T >& vector_, T last_ )
-{
-    typename vector< M-1, T >::const_iterator
-        it = vector_.begin(), it_end = vector_.end();
-
-    iterator my_it = begin();
-
-    for( ; it != it_end; ++it, ++my_it )
-    {
-        (*my_it) = *it;
-    }
-    (*my_it) = last_;
-}
-#endif
-
 // to-homogenous-coordinates ctor
-template< size_t M, typename T >
-template< size_t N >
-vector< M, T >::vector( const vector< N, T >& source_,
+template< size_t M, typename T > template< size_t N >
+Vector< M, T >::Vector( const Vector< N, T >& source_,
                         typename enable_if< N == M - 1 >::type* )
 {
     (*this) = source_;
 }
 
 // from-homogenous-coordinates ctor
-template< size_t M, typename T >
-template< size_t N >
-vector< M, T >::vector( const vector< N, T >& source_,
+template< size_t M, typename T > template< size_t N >
+Vector< M, T >::Vector( const Vector< N, T >& source_,
                         typename enable_if< N == M + 1 >::type* )
 {
     (*this) = source_;
 }
 
-template< size_t M, typename T >
-template< typename U >
-vector< M, T >::vector( const vector< M, U >& source_ )
+template< size_t M, typename T > template< typename U >
+Vector< M, T >::Vector( const Vector< M, U >& source_ )
 {
     (*this) = source_;
 }
 
-template< size_t M, typename T > void vector< M, T >::set( T _a )
-{
-    for( iterator it = begin(), it_end = end(); it != it_end; ++it )
-        *it = _a;
-}
-
-#ifndef SWIG
-template< size_t M, typename T >
-void vector< M, T >::set( const vector< M-1, T >& v, T _a )
-{
-    memcpy( array, v.array, sizeof( T ) * (M-1) );
-    at( M-1 ) = _a;
-}
-#endif
-
-template< size_t M, typename T > template< size_t N >
-void vector< M, T >::set( const vector< N, T >& v )
-{
-    size_t minimum = M;
-    if (N < M) minimum = N;
-    memcpy( array, v.array, sizeof( T ) * minimum );
-}
-
-template< size_t M, typename T >
-void vector< M, T >::set( T _x, T _y )
-{
-    array[ 0 ] = _x;
-    array[ 1 ] = _y;
-}
-
-template< size_t M, typename T >
-void vector< M, T >::set( T _x, T _y, T _z )
-{
-    array[ 0 ] = _x;
-    array[ 1 ] = _y;
-    array[ 2 ] = _z;
-}
-
-template< size_t M, typename T >
-void vector< M, T >::set( T _x, T _y, T _z, T _w )
-{
-    array[ 0 ] = _x;
-    array[ 1 ] = _y;
-    array[ 2 ] = _z;
-    array[ 3 ] = _w;
-}
-
-template< size_t M, typename T >
-inline T&
-vector< M, T >::operator()( size_t index )
+template< size_t M, typename T > inline
+T& Vector< M, T >::operator()( size_t index )
 {
     return at( index );
 }
 
-template< size_t M, typename T >
-inline const T&
-vector< M, T >::operator()( size_t index ) const
+template< size_t M, typename T > inline
+const T& Vector< M, T >::operator()( size_t index ) const
 {
     return at( index );
 }
 
-template< size_t M, typename T >
-inline T&
-vector< M, T >::at( size_t index )
+template< size_t M, typename T > inline
+T& Vector< M, T >::at( size_t index )
 {
     if( index >= M )
         throw std::runtime_error( "at() - index out of bounds" );
     return array[ index ];
 }
 
-template< size_t M, typename T >
-inline const T&
-vector< M, T >::at( size_t index ) const
+template< size_t M, typename T > inline
+const T& Vector< M, T >::at( size_t index ) const
 {
     if ( index >= M )
         throw std::runtime_error( "at() - index out of bounds" );
     return array[ index ];
 }
 
-#ifndef VMMLIB_NO_CONVERSION_OPERATORS
-
 template< size_t M, typename T >
-vector< M, T >::operator T*()
-{
-    return array;
-}
-
-template< size_t M, typename T >
-vector< M, T >::operator const T*() const
-{
-    return array;
-}
-#else
-
-template< size_t M, typename T >
-T&
-vector< M, T >::operator[]( size_t index )
+T& Vector< M, T >::operator[]( size_t index )
 {
     return at( index );
 }
 
 template< size_t M, typename T >
-const T&
-vector< M, T >::operator[]( size_t index ) const
-{
-    return at( index );
-}
-
-#endif
-
-#if 0
-template< size_t M, typename T >
-inline T&
-vector< M, T >::operator[]( size_t index )
+const T& Vector< M, T >::operator[]( size_t index ) const
 {
     return at( index );
 }
 
 template< size_t M, typename T >
-inline const T&
-vector< M, T >::operator[]( size_t index ) const
+Vector< M, T > Vector< M, T >::operator*( const Vector< M, T >& other ) const
 {
-    return at( index );
-}
-#endif
-
-template< size_t M, typename T >
-vector< M, T >
-vector< M, T >::operator*( const vector< M, T >& other ) const
-{
-    vector< M, T > result;
+    Vector< M, T > result;
     for( size_t index = 0; index < M; ++index )
         result.at( index ) = at( index ) * other.at( index );
     return result;
 }
 
 template< size_t M, typename T >
-vector< M, T >
-vector< M, T >::operator/( const vector< M, T >& other ) const
+Vector< M, T > Vector< M, T >::operator/( const Vector< M, T >& other ) const
 {
-    vector< M, T > result;
+    Vector< M, T > result;
     for( size_t index = 0; index < M; ++index )
         result.at( index ) = at( index ) / other.at( index );
     return result;
 }
 
 template< size_t M, typename T >
-vector< M, T >
-vector< M, T >::operator+( const vector< M, T >& other ) const
+Vector< M, T > Vector< M, T >::operator+( const Vector< M, T >& other ) const
 {
-    vector< M, T > result;
+    Vector< M, T > result;
     for( size_t index = 0; index < M; ++index )
         result.at( index ) = at( index ) + other.at( index );
     return result;
 }
 
 template< size_t M, typename T >
-vector< M, T >
-vector< M, T >::operator-( const vector< M, T >& other ) const
+Vector< M, T > Vector< M, T >::operator-( const Vector< M, T >& other ) const
 {
-    vector< M, T > result;
+    Vector< M, T > result;
     for( size_t index = 0; index < M; ++index )
         result.at( index ) = at( index ) - other.at( index );
     return result;
 }
 
 template< size_t M, typename T >
-void
-vector< M, T >::operator*=( const vector< M, T >& other )
+void Vector< M, T >::operator*=( const Vector< M, T >& other )
 {
     for( size_t index = 0; index < M; ++index )
         at( index ) *= other.at( index );
 }
 
 template< size_t M, typename T >
-void
-vector< M, T >::operator/=( const vector< M, T >& other )
+void Vector< M, T >::operator/=( const Vector< M, T >& other )
 {
     for( size_t index = 0; index < M; ++index )
         at( index ) /= other.at( index );
 }
 
 template< size_t M, typename T >
-void
-vector< M, T >::operator+=( const vector< M, T >& other )
+void Vector< M, T >::operator+=( const Vector< M, T >& other )
 {
     for( size_t index = 0; index < M; ++index )
         at( index ) += other.at( index );
@@ -732,47 +496,47 @@ vector< M, T >::operator+=( const vector< M, T >& other )
 
 template< size_t M, typename T >
 void
-vector< M, T >::operator-=( const vector< M, T >& other )
+Vector< M, T >::operator-=( const Vector< M, T >& other )
 {
     for( size_t index = 0; index < M; ++index )
         at( index ) -= other.at( index );
 }
 
 template< size_t M, typename T >
-vector< M, T >
-vector< M, T >::operator*( const T other ) const
+Vector< M, T >
+Vector< M, T >::operator*( const T other ) const
 {
-    vector< M, T > result;
+    Vector< M, T > result;
     for( size_t index = 0; index < M; ++index )
         result.at( index ) = at( index ) * other;
     return result;
 }
 
 template< size_t M, typename T >
-vector< M, T >
-vector< M, T >::operator/( const T other ) const
+Vector< M, T >
+Vector< M, T >::operator/( const T other ) const
 {
-    vector< M, T > result;
+    Vector< M, T > result;
     for( size_t index = 0; index < M; ++index )
         result.at( index ) = at( index ) / other;
     return result;
 }
 
 template< size_t M, typename T >
-vector< M, T >
-vector< M, T >::operator+( const T other ) const
+Vector< M, T >
+Vector< M, T >::operator+( const T other ) const
 {
-    vector< M, T > result;
+    Vector< M, T > result;
     for( size_t index = 0; index < M; ++index )
         result.at( index ) = at( index ) + other;
     return result;
 }
 
 template< size_t M, typename T >
-vector< M, T >
-vector< M, T >::operator-( const T other ) const
+Vector< M, T >
+Vector< M, T >::operator-( const T other ) const
 {
-    vector< M, T > result;
+    Vector< M, T > result;
     for( size_t index = 0; index < M; ++index )
         result.at( index ) = at( index ) - other;
     return result;
@@ -780,7 +544,7 @@ vector< M, T >::operator-( const T other ) const
 
 template< size_t M, typename T >
 void
-vector< M, T >::operator*=( const T other )
+Vector< M, T >::operator*=( const T other )
 {
     for( size_t index = 0; index < M; ++index )
         at( index ) *= other;
@@ -788,7 +552,7 @@ vector< M, T >::operator*=( const T other )
 
 template< size_t M, typename T >
 void
-vector< M, T >::operator/=( const T other )
+Vector< M, T >::operator/=( const T other )
 {
     for( size_t index = 0; index < M; ++index )
         at( index ) /= other;
@@ -796,7 +560,7 @@ vector< M, T >::operator/=( const T other )
 
 template< size_t M, typename T >
 void
-vector< M, T >::operator+=( const T other )
+Vector< M, T >::operator+=( const T other )
 {
     for( size_t index = 0; index < M; ++index )
         at( index ) += other;
@@ -804,143 +568,127 @@ vector< M, T >::operator+=( const T other )
 
 template< size_t M, typename T >
 void
-vector< M, T >::operator-=( const T other )
+Vector< M, T >::operator-=( const T other )
 {
     for( size_t index = 0; index < M; ++index )
         at( index ) -= other;
 }
 
 template< size_t M, typename T >
-vector< M, T >
-vector< M, T >::operator-() const
+Vector< M, T > Vector< M, T >::operator-() const
 {
-    vector< M, T > v( *this );
-    return v.negate();
+    Vector< M, T > v( *this );
+    for( size_t i = 0; i < M; ++i )
+        v.array[ i ] = -array[ i ];
+    return v;
 }
 
-template< size_t M, typename T >
-const vector< M, T >&
-vector< M, T >::negate()
-{
-    for( size_t index = 0; index < M; ++index )
-        array[ index ] = -array[ index ];
-    return *this;
-}
-
-template< size_t M, typename T >
-inline T&
-vector< M, T >::x()
+template< size_t M, typename T > T& Vector< M, T >::x()
 {
     return array[ 0 ];
 }
 
-template< size_t M, typename T >
-inline T&
-vector< M, T >::y()
+template< size_t M, typename T > T& Vector< M, T >::y()
 {
+    if( M < 2 )
+        throw std::runtime_error( "out of bounds read" );
     return array[ 1 ];
 }
 
-template< size_t M, typename T >
-inline T&
-vector< M, T >::z()
+template< size_t M, typename T > T& Vector< M, T >::z()
 {
+    if( M < 3 )
+        throw std::runtime_error( "out of bounds read" );
     return array[ 2 ];
 }
 
-template< size_t M, typename T >
-inline T&
-vector< M, T >::w()
+template< size_t M, typename T > T& Vector< M, T >::w()
 {
+    if( M < 4 )
+        throw std::runtime_error( "out of bounds read" );
     return array[ 3 ];
 }
 
-template< size_t M, typename T >
-inline const T&
-vector< M, T >::x() const
+template< size_t M, typename T > const T& Vector< M, T >::x() const
 {
     return array[ 0 ];
 }
 
-template< size_t M, typename T >
-inline const T&
-vector< M, T >::y() const
+template< size_t M, typename T > const T& Vector< M, T >::y() const
 {
+    if( M < 2 )
+        throw std::runtime_error( "out of bounds read" );
     return array[ 1 ];
 }
 
-template< size_t M, typename T >
-inline const T&
-vector< M, T >::z() const
+template< size_t M, typename T > const T& Vector< M, T >::z() const
 {
+    if( M < 3 )
+        throw std::runtime_error( "out of bounds read" );
     return array[ 2 ];
 }
 
-template< size_t M, typename T >
-inline const T&
-vector< M, T >::w() const
+template< size_t M, typename T > const T& Vector< M, T >::w() const
 {
+    if( M < 4 )
+        throw std::runtime_error( "out of bounds read" );
     return array[ 3 ];
 }
 
-template< size_t M, typename T >
-inline T&
-vector< M, T >::r()
+template< size_t M, typename T > T& Vector< M, T >::r()
 {
     return array[ 0 ];
 }
 
-template< size_t M, typename T >
-inline T&
-vector< M, T >::g()
+template< size_t M, typename T > T& Vector< M, T >::g()
 {
+    if( M < 2 )
+        throw std::runtime_error( "out of bounds read" );
     return array[ 1 ];
 }
 
-template< size_t M, typename T >
-inline T&
-vector< M, T >::b()
+template< size_t M, typename T > T& Vector< M, T >::b()
 {
+    if( M < 3 )
+        throw std::runtime_error( "out of bounds read" );
     return array[ 2 ];
 }
 
-template< size_t M, typename T >
-inline T&
-vector< M, T >::a()
+template< size_t M, typename T > T& Vector< M, T >::a()
 {
+    if( M < 4 )
+        throw std::runtime_error( "out of bounds read" );
     return array[ 3 ];
 }
 
-template< size_t M, typename T >
-inline const T&
-vector< M, T >::r() const
+template< size_t M, typename T > const T& Vector< M, T >::r() const
 {
     return array[ 0 ];
 }
 
-template< size_t M, typename T >
-inline const T&
-vector< M, T >::g() const
+template< size_t M, typename T > const T& Vector< M, T >::g() const
 {
+    if( M < 2 )
+        throw std::runtime_error( "out of bounds read" );
     return array[ 1 ];
 }
 
-template< size_t M, typename T >
-inline const T&
-vector< M, T >::b() const
+template< size_t M, typename T > const T& Vector< M, T >::b() const
 {
+    if( M < 3 )
+        throw std::runtime_error( "out of bounds read" );
     return array[ 2 ];
 }
 
-template< size_t M, typename T >
-inline const T&
-vector< M, T >::a() const
+template< size_t M, typename T > const T& Vector< M, T >::a() const
 {
+    if( M < 4 )
+        throw std::runtime_error( "out of bounds read" );
     return array[ 3 ];
 }
 
 template< size_t M, typename T > template< typename TT >
-vector< M, T >& vector< M, T >::cross( const vector< M, TT >& rhs,
+Vector< M, T >& Vector< M, T >::cross( const Vector< M, TT >& rhs,
                                        typename enable_if< M == 3, TT >::type* )
 {
     const T x_ = y() * rhs.z() - z() * rhs.y();
@@ -953,7 +701,7 @@ vector< M, T >& vector< M, T >::cross( const vector< M, TT >& rhs,
 }
 
 template< size_t M, typename T >
-inline T vector< M, T >::dot( const vector< M, T >& other ) const
+inline T Vector< M, T >::dot( const Vector< M, T >& other ) const
 {
     T tmp = 0.0;
     for( size_t index = 0; index < M; ++index )
@@ -962,7 +710,7 @@ inline T vector< M, T >::dot( const vector< M, T >& other ) const
     return tmp;
 }
 
-template< size_t M, typename T > inline T vector< M, T >::normalize()
+template< size_t M, typename T > inline T Vector< M, T >::normalize()
 {
     const T len = length();
     if ( len <= std::numeric_limits< T >::epsilon( ))
@@ -974,37 +722,36 @@ template< size_t M, typename T > inline T vector< M, T >::normalize()
 }
 
 template< size_t M, typename T >
-inline T vector< M, T >::length() const
+inline T Vector< M, T >::length() const
 {
-    return std::sqrt( squared_length() );
+    return std::sqrt( lengthSquared( ));
 }
 
 template< size_t M, typename T >
-inline T vector< M, T >::squared_length() const
+inline T Vector< M, T >::lengthSquared() const
 {
-    T _squared_length = 0.0;
-    for( const_iterator it = begin(), it_end = end(); it != it_end; ++it )
-        _squared_length += (*it) * (*it);
-
-    return _squared_length;
+    T length2 = T( 0 );
+    for( size_t i = 0; i < M; ++i )
+        length2 += array[i] * array[i];
+    return length2;
 }
 
 template< size_t M, typename T >
 inline T
-vector< M, T >::distance( const vector< M, T >& other ) const
+Vector< M, T >::distance( const Vector< M, T >& other ) const
 {
-    return std::sqrt( squared_distance( other ) );
+    return std::sqrt( distanceSquared( other ) );
 }
 
 template< size_t M, typename T >
-inline T vector< M, T >::squared_distance( const vector< M, T >& other ) const
+inline T Vector< M, T >::distanceSquared( const Vector< M, T >& other ) const
 {
-    vector< M, T > tmp( *this );
+    Vector< M, T > tmp( *this );
     tmp -= other;
-    return tmp.squared_length();
+    return tmp.lengthSquared();
 }
 
-template< size_t M, typename T > inline T vector< M, T >::product() const
+template< size_t M, typename T > inline T Vector< M, T >::product() const
 {
     T result = at( 0 );
     for( size_t i = 1; i < M; ++i )
@@ -1013,14 +760,14 @@ template< size_t M, typename T > inline T vector< M, T >::product() const
 }
 
 template< size_t M, typename T > template< typename TT >
-vector< 3, T >& vector< M, T >::rotate( const T theta, vector< M, TT > axis,
+Vector< 3, T >& Vector< M, T >::rotate( const T theta, Vector< M, TT > axis,
                                         typename enable_if< M==3, TT >::type* )
 {
     const T costheta = std::cos( theta );
     const T sintheta = std::sin( theta );
 
     axis.normalize();
-    return *this = vector< 3, T >(
+    return *this = Vector< 3, T >(
         (costheta + ( 1 - costheta ) * axis.x() * axis.x() ) * x()    +
         (( 1 - costheta ) * axis.x() * axis.y() - axis.z() * sintheta ) * y() +
         (( 1 - costheta ) * axis.x() * axis.z() + axis.y() * sintheta ) * z(),
@@ -1035,13 +782,13 @@ vector< 3, T >& vector< M, T >::rotate( const T theta, vector< M, TT > axis,
 }
 
 // sphere layout: center xyz, radius w
-template< size_t M, typename T > template< typename TT > inline vector< 3, T >
-vector< M, T >::project_point_onto_sphere( const vector< 3, TT >& point,
+template< size_t M, typename T > template< typename TT > inline Vector< 3, T >
+Vector< M, T >::project_point_onto_sphere( const Vector< 3, TT >& point,
     typename enable_if< M == 4, TT >::type* ) const
 {
-    const vector< 3, T >& center_ = get_sub_vector< 3 >();
+    const Vector< 3, T >& center_ = getSubVector< 3 >();
 
-    vector< 3, T > projected_point( point );
+    Vector< 3, T > projected_point( point );
     projected_point -= center_;
     projected_point.normalize();
     projected_point *= w();
@@ -1050,23 +797,23 @@ vector< M, T >::project_point_onto_sphere( const vector< 3, TT >& point,
 
 // sphere layout: center xyz, radius w
 template< size_t M, typename T > template< typename TT > inline T
-vector< M, T >::distance_to_sphere( const vector< 3, TT >& point,
+Vector< M, T >::distance_to_sphere( const Vector< 3, TT >& point,
                                     typename enable_if< M == 4, TT >::type* )
     const
 {
-    const vector< 3, T >& center_ = get_sub_vector< 3 >();
+    const Vector< 3, T >& center_ = getSubVector< 3 >();
     return ( point - center_ ).length() - w();
 }
 
 template< size_t M, typename T > template< size_t N, size_t O >
-vector< N, T > vector< M, T >::get_sub_vector(
+Vector< N, T > Vector< M, T >::getSubVector(
     typename enable_if< M >= N+O >::type* ) const
 {
-    return vector< N, T >( array + O );
+    return Vector< N, T >( array + O );
 }
 
 template< size_t M, typename T > template< size_t N, size_t O >
-void vector< M, T >::set_sub_vector( const vector< N, T >& sub,
+void Vector< M, T >::setSubVector( const Vector< N, T >& sub,
                                      typename enable_if< M >= N+O >::type* )
 {
     ::memcpy( array + O, sub.array, N * sizeof( T ));
@@ -1074,36 +821,36 @@ void vector< M, T >::set_sub_vector( const vector< N, T >& sub,
 
 // plane: normal xyz, distance w
 template< size_t M, typename T > template< typename TT >
-inline T vector< M, T >::distance_to_plane( const vector< 3, TT >& point,
+inline T Vector< M, T >::distance_to_plane( const Vector< 3, TT >& point,
     typename enable_if< M == 4, TT >::type* ) const
 {
-    const vector< 3, T >& normal = get_sub_vector< 3 >();
+    const Vector< 3, T >& normal = getSubVector< 3 >();
     return normal.dot( point ) + w();
 }
 
 // plane: normal xyz, distance w
-template< size_t M, typename T > template< typename TT > vector< 3, T >
-vector< M, T >::project_point_onto_plane( const vector< 3, TT >& point,
+template< size_t M, typename T > template< typename TT > Vector< 3, T >
+Vector< M, T >::project_point_onto_plane( const Vector< 3, TT >& point,
     typename enable_if< M == 4, TT >::type* ) const
 {
-    const vector< 3, T >& normal = get_sub_vector< 3 >();
+    const Vector< 3, T >& normal = getSubVector< 3 >();
     return point - ( normal * distance_to_plane( point ) );
 }
 
 template< size_t M, typename T >
-bool vector< M, T >::operator==( const vector< M, T >& other ) const
+bool Vector< M, T >::operator==( const Vector< M, T >& other ) const
 {
     return memcmp( array, other.array, sizeof( array )) == 0;
 }
 
 template< size_t M, typename T >
-bool vector< M, T >::operator!=( const vector< M, T >& other ) const
+bool Vector< M, T >::operator!=( const Vector< M, T >& other ) const
 {
     return ! this->operator==( other );
 }
 
 template< size_t M, typename T >
-bool vector< M, T >::equals( const vector< M, T >& other, T tolerance ) const
+bool Vector< M, T >::equals( const Vector< M, T >& other, T tolerance ) const
 {
     for( size_t index = 0; index < M; ++index )
         if( fabs( at( index ) - other( index ) ) >= tolerance )
@@ -1113,8 +860,7 @@ bool vector< M, T >::equals( const vector< M, T >& other, T tolerance ) const
 }
 
 template< size_t M, typename T >
-bool
-vector< M, T >::operator<( const vector< M, T >& other ) const
+bool Vector< M, T >::operator<( const Vector< M, T >& other ) const
 {
     for(size_t index = 0; index < M; ++index )
     {
@@ -1128,10 +874,10 @@ vector< M, T >::operator<( const vector< M, T >& other ) const
 // non-chainable because of sfinae
 template< size_t M, typename T > template< size_t N >
 typename enable_if< N == M - 1 >::type*
-vector< M, T >::operator=( const vector< N, T >& source_ )
+Vector< M, T >::operator=( const Vector< N, T >& source )
 {
-    std::copy( source_.begin(), source_.end(), begin() );
-    at( M - 1 ) = static_cast< T >( 1.0 );
+    ::memcpy( array, source.array, N * sizeof( T ));
+    at( M - 1 ) = T( 1 );
     return 0;
 }
 
@@ -1139,299 +885,20 @@ vector< M, T >::operator=( const vector< N, T >& source_ )
 // non-chainable because of sfinae
 template< size_t M, typename T > template< size_t N >
 typename enable_if< N == M + 1 >::type*
-vector< M, T >::operator=( const vector< N, T >& source_ )
+Vector< M, T >::operator=( const Vector< N, T >& source )
 {
-    const T w_reci = static_cast< T >( 1.0 ) / source_( M );
-    iterator it = begin(), it_end = end();
-    for( size_t index = 0; it != it_end; ++it, ++index )
-        *it = source_( index ) * w_reci;
+    const T wInv = T( 1 ) / source( M );
+    for( size_t i = 0; i < M; ++i )
+        array[i] = source( i ) * wInv;
     return 0;
 }
 
 template< size_t M, typename T >
-vector< M, T >& vector< M, T >::operator=( const T* c_array )
-{
-    iter_set( c_array, c_array + M );
-    return *this;
-}
-
-template< size_t M, typename T >
-T vector< M, T >::operator=( T filler_value )
-{
-    for( size_t index = 0; index < M; ++index )
-        at( index ) = filler_value;
-    return filler_value;
-}
-
-template< size_t M, typename T >
-vector< M, T >& vector< M, T >::operator=( const vector< M, T >& other )
+Vector< M, T >& Vector< M, T >::operator=( const Vector< M, T >& other )
 {
     if( this != &other )
-        memcpy( array, other.array, M * sizeof( T ) );
+        ::memcpy( array, other.array, M * sizeof( T ) );
     return *this;
-}
-
-// returns void to avoid 'silent' loss of precision when chaining
-template< size_t M, typename T > template< typename U >
-void vector< M, T >::operator=( const vector< M, U >& source_ )
-{
-    typedef typename vector< M, U >::const_iterator u_c_iter;
-    u_c_iter it = source_.begin(), it_end = source_.end();
-    for( iterator my_it = begin(); it != it_end; ++it, ++my_it )
-        *my_it = static_cast< T >( *it );
-}
-
-template< size_t M, typename T >
-template< typename input_iterator_t >
-void
-vector< M, T >::iter_set( input_iterator_t begin_, input_iterator_t end_ )
-{
-    input_iterator_t in_it = begin_;
-    iterator it = begin(), it_end = end();
-    for( ; it != it_end && in_it != end_; ++it, ++in_it )
-        (*it) = static_cast< T >( *in_it );
-}
-
-template< size_t M, typename T >
-void vector< M, T >::clamp( const T& min, const T& max )
-{
-    for( size_t i = 0; i < M; ++i )
-    {
-        if( array[i] < min )
-            array[i] = min;
-        if( array[i] > max )
-            array[i] = max;
-    }
-}
-
-template< size_t M, typename T >
-inline size_t
-vector< M, T >::size()
-{
-    return M;
-}
-
-template< size_t M, typename T >
-size_t
-vector< M, T >::find_min_index() const
-{
-    return std::min_element( begin(), end() ) - begin();
-}
-
-template< size_t M, typename T >
-size_t
-vector< M, T >::find_max_index() const
-{
-    return std::max_element( begin(), end() ) - begin();
-}
-
-template< size_t M, typename T >
-T&
-vector< M, T >::find_min()
-{
-    return *std::min_element( begin(), end() );
-}
-
-template< size_t M, typename T >
-const T&
-vector< M, T >::find_min() const
-{
-    return *std::min_element( begin(), end() );
-}
-
-template< size_t M, typename T >
-T&
-vector< M, T >::find_max()
-{
-    return *std::max_element( begin(), end() );
-}
-
-template< size_t M, typename T >
-const T&
-vector< M, T >::find_max() const
-{
-    return *std::max_element( begin(), end() );
-}
-
-template< size_t M, typename T >
-inline typename vector< M, T >::iterator
-vector< M, T >::begin()
-{
-    return array;
-}
-
-template< size_t M, typename T >
-inline typename vector< M, T >::iterator
-vector< M, T >::end()
-{
-    return array + M; ;
-}
-
-template< size_t M, typename T >
-inline typename vector< M, T >::const_iterator
-vector< M, T >::begin() const
-{
-    return array;
-}
-
-template< size_t M, typename T >
-inline typename vector< M, T >::const_iterator
-vector< M, T >::end() const
-{
-    return array + M; ;
-}
-
-template< size_t M, typename T >
-inline typename vector< M, T >::reverse_iterator
-vector< M, T >::rbegin()
-{
-    return array + M - 1;
-}
-
-template< size_t M, typename T >
-inline typename vector< M, T >::reverse_iterator
-vector< M, T >::rend()
-{
-    return array - 1;
-}
-
-template< size_t M, typename T >
-inline typename vector< M, T >::const_reverse_iterator
-vector< M, T >::rbegin() const
-{
-    return array + M - 1;
-}
-
-template< size_t M, typename T >
-inline typename vector< M, T >::const_reverse_iterator
-vector< M, T >::rend() const
-{
-    return array - 1;
-}
-
-template< size_t M, typename T >
-bool
-vector< M, T >::is_unit_vector() const
-{
-    const_iterator it = begin(), it_end = end();
-    bool one = false;
-    for( ; it != it_end; ++it )
-    {
-        if ( *it == 1.0 )
-        {
-            if ( one )
-                return false;
-            one = true;
-        }
-        else if ( *it != 0.0 )
-        {
-            return false;
-        }
-    }
-    return one;
-}
-
-template< size_t M, typename T >
-void
-vector< M, T >::perturb( T perturbation )
-{
-    for( iterator it = begin(), it_end = end(); it != it_end; ++it )
-    {
-        (*it) += ( rand() & 1u ) ? perturbation : -perturbation;
-    }
-
-}
-
-template< size_t M, typename T >
-void
-vector< M, T >::sqrt_elementwise()
-{
-    for( iterator it = begin(), it_end = end(); it != it_end; ++it )
-    {
-        (*it) = std::sqrt(*it);
-    }
-}
-
-template< size_t M, typename T > void vector< M, T >::reciprocal()
-{
-    for( iterator it = begin(), it_end = end(); it != it_end; ++it )
-        (*it) = static_cast< T >( 1 ) / (*it);
-}
-
-template< size_t M, typename T > void vector< M, T >::reciprocal_safe()
-{
-    for( iterator it = begin(), it_end = end(); it != it_end; ++it )
-    {
-        T& v = *it;
-
-        if( v == 0 )
-            v = std::numeric_limits< T >::max();
-        else
-            v = static_cast< T >( 1 ) / v;
-    }
-}
-
-template< size_t M, typename T >
-template< typename TT >
-void
-vector< M, T >::cast_from( const vector< M, TT >& other )
-{
-    typedef vmml::vector< M, TT > vector_tt_type ;
-    typedef typename vector_tt_type::const_iterator tt_const_iterator;
-
-    iterator it = begin(), it_end = end();
-    tt_const_iterator other_it = other.begin();
-    for( ; it != it_end; ++it, ++other_it )
-    {
-        *it = static_cast< T >( *other_it );
-    }
-}
-
-template< size_t M, typename T >
-size_t
-vector< M, T >::nnz() const
-{
-    size_t counter = 0;
-
-    const_iterator  it = begin(),
-    it_end = end();
-    for( ; it != it_end; ++it)
-    {
-        if ( *it != 0 ) {
-            ++counter;
-        }
-    }
-
-    return counter;
-}
-
-template< size_t M, typename T >
-double
-vector< M, T >::norm( ) const
-{
-    double norm_v = 0.0;
-
-    const_iterator it = begin(), it_end = end();
-    for( ; it != it_end; ++it )
-    {
-        norm_v += *it * *it;
-    }
-
-    return std::sqrt(norm_v);
-}
-
-template< size_t M, typename T >
-void
-vector< M, T >::set_random( int seed )
-{
-    if ( seed >= 0 )
-        srand( seed );
-
-    for( size_t i = 0; i < M; ++i )
-    {
-        const double fillValue = double( rand( )) / double( RAND_MAX );
-        at( i ) = -1.0 + 2.0 * fillValue;
-    }
 }
 
 } // namespace vmml
